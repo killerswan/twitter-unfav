@@ -105,32 +105,27 @@ main =
 
          (True, False)  ->
             putStrLn "gen mode, yay!"
-
-            >>
-
-            if consumerKey opts == "" || consumerSecret opts == ""
-            then error "to generate a token, you need to enter a key and secret from Twitter..."
-            else putStrLn $ "key: " ++ (consumerKey opts) ++ ", secret: " ++ (consumerSecret opts)
+            >> if consumerKey opts == "" || consumerSecret opts == ""
+               then error "to make a token, you need an OAuth consumer key and secret from Twitter..."
+               else generateAndSaveToken (consumerKey opts) (consumerSecret opts)
 
          (False, True)  ->
             putStrLn "clean mode, yay!"
+            -- TODO: delete the token file
 
          _              ->
             putStrLn "neither mode, yay!"
 
-{-
 
-> :m + Web.Twitter
-> :m + Web.Twitter.OAuth
-> 
-> let tk = authenticate $ Consumer "SNIP" "SNIP"
-> 
-> tk >>= (\t -> writeToken t "kevin.token") 
-open https://api.twitter.com/oauth/authorize?oauth_token=SNIP
-verifier: SNIP
-> 
-> 
-> 
+generateAndSaveToken key secret = 
+   do 
+      token <- authenticate $ Consumer key secret
+      name  <- getProgName
+      writeToken token $ name ++ ".token"
+      -- TODO: this is not the best way or place to save the token
+
+
+{-
 > let snd message = readToken "kevin.token" >>= (\t -> updateStatus t message)
 > 
 > snd "omfg"

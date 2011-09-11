@@ -16,4 +16,5 @@
 dist/
 cabal-dev/
 
+*.token
 
