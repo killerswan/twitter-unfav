@@ -7,7 +7,8 @@
 -- Stability   : experimental
 --
 -- A program to clear out old Twitter favorites
--- 
+
+
 module Main (main) where
 
 import qualified Data.ByteString.Lazy as B
@@ -21,9 +22,11 @@ import Data.Word
 
 import Web.Twitter         -- provided by askitter
 import Web.Twitter.OAuth   -- provided by askitter
+import Data.Time.Parse
 
 
 version = "0.1"
+
 
 -- command line options
 data Options = Options { genMode          :: Bool
@@ -84,39 +87,6 @@ options = [
           ]
 
 
-
-main :: IO ()
-main = 
-   do 
-      args <- getArgs
-
-      -- call getOpt with the option description
-      -- ignoring errors
-      let (actions, nonOptions, _) = getOpt Permute options args
-
-      -- process the defaults with those actions
-      -- returns command line properties
-      opts <- foldl (>>=) (return defaultOpts) actions
-
-      -- ...
-      case (genMode opts, cleanMode opts) of
-         (True, True)   ->
-            error "gen mode and clean mode are mutually exclusive..."
-
-         (True, False)  ->
-            putStrLn "gen mode, yay!"
-            >> if consumerKey opts == "" || consumerSecret opts == ""
-               then error "to make a token, you need an OAuth consumer key and secret from Twitter..."
-               else generateAndSaveToken (consumerKey opts) (consumerSecret opts)
-
-         (False, True)  ->
-            putStrLn "clean mode, yay!"
-            -- TODO: delete the token file
-
-         _              ->
-            putStrLn "neither mode, yay!"
-
-
 generateAndSaveToken key secret = 
    do 
       token <- authenticate $ Consumer key secret
@@ -125,29 +95,38 @@ generateAndSaveToken key secret =
       -- TODO: this is not the best way or place to save the token
 
 
-{-
-> let snd message = readToken "kevin.token" >>= (\t -> updateStatus t message)
-> 
-> snd "omfg"
-> 
-> rd
-[Status {user        = "mathpunk",
-         text        = "Strong truth. G+ and pseudonyms. RT @BoraZ: Pseudonym IS a name:  http://bit.ly/pW2yEQ",
-         status_id   = 95257690909061121}]
-> 
-> getStatus "95257597556432896" []
-Status {user = "doingitwrong", text = "RT @quinnnorton: These evil lesbian succubi are coming for your heterosexual marriage! http://bit.ly/o7ElE2", status_id = 95257597556432896}
-> 
-> 
-> let rdf = readToken "kevin.token" >>= (getFavorites [Count 2])
-> rdf
-[Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
-> 
-> 
-> :m + Data.Time.Parse
-> strptime "%a %b %d %T %z %Y" "Tue Jul 26 05:08:24 +0000 2011"
-Just (2011-07-26 05:08:24,"")
+deleteOldFavorites =
+   let readFavorites = readToken "kevin.token" >>= (getFavorites [Count 2])
+   -- > readFavorites
+   -- e.g. [Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},
+   --       Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
+   -- 
+   -- also:
+   -- > strptime "%a %b %d %T %z %Y" "Tue Jul 26 05:08:24 +0000 2011"
+   -- e.g. Just (2011-07-26 05:08:24,"")
+   
 
--}
+
+main :: IO ()
+main = 
+   do 
+      args <- getArgs
+
+      -- call getOpt, ignoring errors
+      let (actions, nonOptions, _) = getOpt Permute options args
+
+      -- process the defaults with those actions
+      opts <- foldl (>>=) (return defaultOpts) actions
+
+      case (genMode opts, cleanMode opts) of
+         (True, True)   -> error "gen and clean modes are mutually exclusive..."
+
+         (True, False)  -> if consumerKey opts == "" || consumerSecret opts == ""
+                           then error "to make a token, you need an OAuth consumer key and secret..."
+                           else generateAndSaveToken (consumerKey opts) (consumerSecret opts)
+
+         (False, True)  -> putStrLn "clean mode, yay!" -- TODO
+
+         _              -> deleteOldFavorites
 
 
