@@ -101,7 +101,7 @@ getFavorites' count = getProgName >>= \name -> readToken (name ++ ".token") >>= 
 deleteOldFavorites =
    do
       favs <- getFavorites' 1
-      let ctime = fcreated_at favs
+      let ctime = fcreated_at $ favs !! 0
       --let ctime = "dummy"
       putStrLn ctime
 
