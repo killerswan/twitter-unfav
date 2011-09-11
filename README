@@ -1,0 +1,24 @@
+unfav
+Kevin Cantu <me@kevincantu.org>
+September 2011
+
+STATUS:
+I'm currently writing the part which 
+deletes old favorites on Twitter...
+
+BUILD:
+$ cabal-dev add-source /code/askitter
+$ cabal-dev install askitter
+$ cabal-dev configure
+$ cabal-dev build
+$ ./dist/build/unfav/unfav -h
+unfav
+  -g         --generate       generate, then save a Twitter API token
+                              (requires you specify a KEY and SECRET, too)
+  -k KEY     --key=KEY        a consumer key for this app to use
+  -s SECRET  --secret=SECRET  a consumer secret for this app to use
+  -x         --clean          clean up: remove the saved the access token
+  -h         --help           display this help
+  -v         --version        display version
+
+
