@@ -30,8 +30,9 @@ executable unfav
    hs-source-dirs:   .
    build-depends:    base,
                      text,
-                     askitter,
                      haskell98,
-                     bytestring
+                     bytestring,
+                     strptime,
+                     askitter >= 0.0.3
 
 

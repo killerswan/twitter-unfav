@@ -9,7 +9,7 @@
 -- A program to clear out old Twitter favorites
 
 
-module Main (main) where
+--module Main (main) where
 
 import qualified Data.ByteString.Lazy as B
 import System
@@ -95,8 +95,16 @@ generateAndSaveToken key secret =
       -- TODO: this is not the best way or place to save the token
 
 
+getFavorites' count = getProgName >>= \name -> readToken (name ++ ".token") >>= (getFavorites [Count count])
+
+
 deleteOldFavorites =
-   let readFavorites = readToken "kevin.token" >>= (getFavorites [Count 2])
+   do
+      favs <- getFavorites' 1
+      let ctime = fcreated_at favs
+      --let ctime = "dummy"
+      putStrLn ctime
+
    -- > readFavorites
    -- e.g. [Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},
    --       Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
@@ -105,7 +113,6 @@ deleteOldFavorites =
    -- > strptime "%a %b %d %T %z %Y" "Tue Jul 26 05:08:24 +0000 2011"
    -- e.g. Just (2011-07-26 05:08:24,"")
    
-
 
 main :: IO ()
 main = 
