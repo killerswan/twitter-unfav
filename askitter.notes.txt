@@ -1,0 +1,35 @@
+> :m + Web.Twitter
+> :m + Web.Twitter.OAuth
+> 
+> let tk = authenticate $ Consumer "SNIP" "SNIP"
+> 
+> tk >>= (\t -> writeToken t "kevin.token") 
+open https://api.twitter.com/oauth/authorize?oauth_token=SNIP
+verifier: SNIP
+> 
+> 
+> 
+> let snd message = readToken "kevin.token" >>= (\t -> updateStatus t message)
+> 
+> snd "omfg"
+> 
+> rd
+[Status {user = "mathpunk", text = "Strong truth. G+ and pseudonyms. RT @BoraZ: Pseudonym IS a name:  http://bit.ly/pW2yEQ", status_id = 95257690909061121},Status {user = "doingitwrong", text = "RT @quinnnorton: These evil lesbian succubi are coming for your heterosexual marriage! http://bit.ly/o7ElE2", status_id = 95257597556432896},Status {user = "PennyRed", text = "But getting spitefully attacked is no excuse for spitefully attacking others. In the future, I resolve to write with more compassion.", status_id = 95257538152505344},Status {user = "TheAraxie", text = "Photo: So I\8217m looking into getting a new webcam and figured I\8217d run this by all of you guys (and gals). I... http://tumblr.com/xap3ol02lq", status_id = 95257440639139840},Status {user = "hotgazpacho", text = "Future's so bright... http://instagr.am/p/IcULx/", status_id = 95257190516006912}]
+> 
+> 
+> getStatus "95257597556432896" []
+Status {user = "doingitwrong", text = "RT @quinnnorton: These evil lesbian succubi are coming for your heterosexual marriage! http://bit.ly/o7ElE2", status_id = 95257597556432896}
+> 
+> 
+> let rdf = readToken "kevin.token" >>= (getFavorites [Count 2])
+> rdf
+[Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
+> 
+> 
+> :m + Data.Time.Parse
+> strptime "%a %b %d %T %z %Y" "Tue Jul 26 05:08:24 +0000 2011"
+Just (2011-07-26 05:08:24,"")
+> 
+> 
+> 
+

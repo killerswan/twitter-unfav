@@ -1,0 +1,33 @@
+name:                unfav
+version:             0.1
+synopsis:            A tool to clear out old Twitter favorites
+description:         
+   .
+   This package provides an executable tool to delete old Twitter favorites.
+   .
+   Usage: unfav --init
+   .
+      or: unfav [--keep DAYS]
+   .
+category:            Twitter
+stability:           experimental
+license:             BSD3
+license-file:        LICENSE
+author:              Kevin Cantu <me@kevincantu.org>
+maintainer:          Kevin Cantu <me@kevincantu.org>
+copyright:           (c) 2011 Kevin Cantu
+homepage:            https://github.com/killerswan
+bug-reports:         https://github.com/killerswan
+build-type:          Simple
+cabal-version:       >=1.8
+
+source-repository head
+   type:       git
+   location:   https://github.com/killerswan
+
+executable unfav
+   main-is:          Main.hs
+   hs-source-dirs:   .
+   build-depends:    base
+
+
