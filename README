@@ -13,12 +13,12 @@ $ cabal-dev configure
 $ cabal-dev build
 $ ./dist/build/unfav/unfav -h
 unfav
-  -g         --generate       generate, then save a Twitter API token
+  -g         --generate       toggle generate mode, to save a Twitter API token
                               (requires you specify a KEY and SECRET, too)
-  -k KEY     --key=KEY        a consumer key for this app to use
-  -s SECRET  --secret=SECRET  a consumer secret for this app to use
-  -x         --clean          clean up: remove the saved the access token
-  -h         --help           display this help
+  -k KEY     --key=KEY        a consumer key for this app
+  -s SECRET  --secret=SECRET  a consumer secret for this app
+  -x         --clean          toggle clean up mode, to remove a saved token
+  -h         --help           display help
   -v         --version        display version
 
 

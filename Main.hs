@@ -50,21 +50,21 @@ options = [
             -- GEN MODE
             Option "g" ["generate"] 
                    (NoArg $ \opt -> return opt { genMode = True })
-                   $ "generate, then save a Twitter API token\n" ++ 
+                   $ "toggle generate mode, to save a Twitter API token\n" ++ 
                      "(requires you specify a KEY and SECRET, too)"
 
           , Option "k" ["key"] 
                    (ReqArg (\arg opt -> return opt { consumerKey = arg }) "KEY")
-                   "a consumer key for this app to use"
+                   "a consumer key for this app"
 
           , Option "s" ["secret"] 
                    (ReqArg (\arg opt -> return opt { consumerSecret = arg }) "SECRET")
-                   "a consumer secret for this app to use"
+                   "a consumer secret for this app"
 
             -- CLEAN MODE
           , Option "x" ["clean"] 
                    (NoArg $ \opt -> return opt { cleanMode = True })
-                   "clean up: remove the saved the access token"
+                   "toggle clean up mode, to remove a saved token"
 
             -- HELP
           , Option "h" ["help"] 
@@ -72,7 +72,7 @@ options = [
                         prg <- getProgName
                         hPutStrLn stderr $ usageInfo prg options
                         exitWith ExitSuccess)
-                   "display this help"
+                   "display help"
 
             -- VERSION
           , Option "v" ["version"] 
