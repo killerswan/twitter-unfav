@@ -19,9 +19,14 @@ import qualified Data.Text.Lazy as T
 import qualified Data.Text.Lazy.Encoding as E
 import Data.Word
 
+import Web.Twitter         -- provided by askitter
+import Web.Twitter.OAuth   -- provided by askitter
+
+
+version = "0.1"
 
 -- command line options
-data Options = Options { authMode         :: Bool
+data Options = Options { genMode          :: Bool
                        , cleanMode        :: Bool
                        , consumerKey      :: String
                        , consumerSecret   :: String
@@ -30,7 +35,7 @@ data Options = Options { authMode         :: Bool
 
 -- command line defaults
 defaultOpts :: Options
-defaultOpts = Options { authMode         = False
+defaultOpts = Options { genMode          = False
                       , cleanMode        = False
                       , consumerKey      = ""
                       , consumerSecret   = ""
@@ -42,20 +47,19 @@ defaultOpts = Options { authMode         = False
 --   [Option short [long] (property setter-function hint) description]
 options :: [ OptDescr (Options -> IO Options) ]
 options = [
-            -- AUTH MODE
-            Option "a" ["auth"] 
-                   (NoArg $ \opt -> return opt { authMode = True })
-                   "request and save an access token from Twitter (interactive)"
-
-{-
-          , Option "s" ["secret"] 
-                   (ReqArg $ \arg opt -> return opt { consumerSecret = arg })
-                   "a consumer secret for this app to use"
+            -- GEN MODE
+            Option "g" ["generate"] 
+                   (NoArg $ \opt -> return opt { genMode = True })
+                   $ "generate, then save a Twitter API token\n" ++ 
+                     "(requires you specify a KEY and SECRET, too)"
 
           , Option "k" ["key"] 
-                   (ReqArg $ \arg opt -> return opt { consumerKey = arg })
+                   (ReqArg (\arg opt -> return opt { consumerKey = arg }) "KEY")
                    "a consumer key for this app to use"
--}
+
+          , Option "s" ["secret"] 
+                   (ReqArg (\arg opt -> return opt { consumerSecret = arg }) "SECRET")
+                   "a consumer secret for this app to use"
 
             -- CLEAN MODE
           , Option "x" ["clean"] 
@@ -68,15 +72,15 @@ options = [
                         prg <- getProgName
                         hPutStrLn stderr $ usageInfo prg options
                         exitWith ExitSuccess)
-                   "display this help and exit"
+                   "display this help"
 
             -- VERSION
           , Option "v" ["version"] 
                    (NoArg $ \_ -> do
                         me <- getProgName
-                        hPutStrLn stderr $ me ++ " version 0.5"
+                        hPutStrLn stderr $ me ++ " version " ++ version
                         exitWith ExitSuccess)
-                   "display version and exit"
+                   "display version"
           ]
 
 
@@ -94,22 +98,25 @@ main =
       -- returns command line properties
       opts <- foldl (>>=) (return defaultOpts) actions
 
-      -- assign the results
-      -- via destructuring assignment
-      let Options { authMode         = am
-                  , cleanMode        = cm
-                  , consumerKey      = ck
-                  , consumerSecret   = cs
-                  } = opts
-
-      case (am, cm) of
-                  (True, True)   -> error "auth mode and clean mode are mutually exclusive..."
-                  (True, False)  -> putStrLn "auth mode, yay!"
-                  (False, True)  -> putStrLn "clean mode, yay!"
-                  _              -> putStrLn "neither mode, yay!"
-
-
       -- ...
+      case (genMode opts, cleanMode opts) of
+         (True, True)   ->
+            error "gen mode and clean mode are mutually exclusive..."
+
+         (True, False)  ->
+            putStrLn "gen mode, yay!"
+
+            >>
+
+            if consumerKey opts == "" || consumerSecret opts == ""
+            then error "to generate a token, you need to enter a key and secret from Twitter..."
+            else putStrLn $ "key: " ++ (consumerKey opts) ++ ", secret: " ++ (consumerSecret opts)
+
+         (False, True)  ->
+            putStrLn "clean mode, yay!"
+
+         _              ->
+            putStrLn "neither mode, yay!"
 
 {-
 
