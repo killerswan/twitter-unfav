@@ -23,6 +23,10 @@ import Data.Word
 import Web.Twitter         -- provided by askitter
 import Web.Twitter.OAuth   -- provided by askitter
 import Data.Time.Parse
+import Data.Time.LocalTime
+import Data.Time.Clock
+import Data.Time.Calendar
+import Data.Time.Calendar
 
 
 version = "0.1"
@@ -98,19 +102,48 @@ generateAndSaveToken key secret =
 getFavorites' count = getProgName >>= \name -> readToken (name ++ ".token") >>= (getFavorites [Count count])
 
 
+printLocalNow = 
+   do
+      now <- getCurrentTime
+      zone <- getTimeZone now
+      
+      let now' = utcToLocalTime zone now
+
+      putStrLn (shows now' "")
+
+
+printTwoWeeksAgo =
+   do
+      now <- getCurrentTime
+
+      let twoWeeks = 14 * (60 * 60 * 24) :: NominalDiffTime
+      let twoWeeksAgo = addUTCTime (-twoWeeks) now
+
+      putStrLn (shows twoWeeksAgo "")
+
+
 deleteOldFavorites =
    do
       favs <- getFavorites' 1
       let ctime = fcreated_at $ favs !! 0
-      --let ctime = "dummy"
-      putStrLn ctime
+   
+      printTwoWeeksAgo
+
+{-
+      let ctime' = strptime "%a %b %d %T %z %Y" ctime
+      if ctime' <= (now - oneday)
+      then
+         putStrLn "(more than a day old)"
+      else
+         putStrLn "(less than a day old)"
+-}
+
 
    -- > readFavorites
    -- e.g. [Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},
    --       Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
    -- 
    -- also:
-   -- > strptime "%a %b %d %T %z %Y" "Tue Jul 26 05:08:24 +0000 2011"
    -- e.g. Just (2011-07-26 05:08:24,"")
    
 
