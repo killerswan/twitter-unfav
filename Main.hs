@@ -101,9 +101,6 @@ generateAndSaveToken key secret =
       -- TODO: this is not the best way or place to save the token
 
 
-getFavorites' count = getProgName >>= \name -> readToken (name ++ ".token") >>= (getFavorites [Count count])
-
-
 twoWeeksAgo =
    do
       now <- getCurrentTime
@@ -115,9 +112,13 @@ twoWeeksAgo =
 
 deleteOldFavorites =
    do
-      favs <- getFavorites' 1
+      name <- getProgName
+      token <- readToken (name ++ ".token") 
 
-      let ctime = fcreated_at $ favs !! 0
+      favs <- getFavorites [Count 1] token
+      let fav = favs !! 0
+
+      let ctime = fcreated_at fav
       let ctime' = strptime "%a %b %d %T %z %Y" ctime
 
   
@@ -127,17 +128,18 @@ deleteOldFavorites =
                   Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
                   _          -> error "that created time is not recognized"
 
+      -- TODO: flip
       case (ctime'' <= twoWeeksAgo') of
          True  -> putStrLn "(more than two weeks old)"
-         False -> putStrLn "(less than two weeks old)"
+         False -> do
+                     putStrLn $ "(less than two weeks old, fid_str: " ++ (fid_str fav) ++ ")"
+                     unFavorite (fid_str fav) token
+                     putStrLn "done."
 
 
    -- > readFavorites
    -- e.g. [Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},
    --       Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
-   -- 
-   -- also:
-   -- e.g. Just (2011-07-26 05:08:24,"")
    
 
 main :: IO ()
