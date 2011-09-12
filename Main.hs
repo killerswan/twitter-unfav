@@ -28,6 +28,8 @@ import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.Calendar
 
+import Data.Maybe
+
 
 version = "0.1"
 
@@ -102,41 +104,32 @@ generateAndSaveToken key secret =
 getFavorites' count = getProgName >>= \name -> readToken (name ++ ".token") >>= (getFavorites [Count count])
 
 
-printLocalNow = 
-   do
-      now <- getCurrentTime
-      zone <- getTimeZone now
-      
-      let now' = utcToLocalTime zone now
-
-      putStrLn (shows now' "")
-
-
-printTwoWeeksAgo =
+twoWeeksAgo =
    do
       now <- getCurrentTime
 
       let twoWeeks = 14 * (60 * 60 * 24) :: NominalDiffTime
-      let twoWeeksAgo = addUTCTime (-twoWeeks) now
 
-      putStrLn (shows twoWeeksAgo "")
+      return $ addUTCTime (-twoWeeks) now
 
 
 deleteOldFavorites =
    do
       favs <- getFavorites' 1
-      let ctime = fcreated_at $ favs !! 0
-   
-      printTwoWeeksAgo
 
-{-
+      let ctime = fcreated_at $ favs !! 0
       let ctime' = strptime "%a %b %d %T %z %Y" ctime
-      if ctime' <= (now - oneday)
-      then
-         putStrLn "(more than a day old)"
-      else
-         putStrLn "(less than a day old)"
--}
+
+  
+      twoWeeksAgo' <- twoWeeksAgo
+
+      ctime'' <- case ctime' of
+                  Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
+                  _          -> error "that created time is not recognized"
+
+      case (ctime'' <= twoWeeksAgo') of
+         True  -> putStrLn "(more than two weeks old)"
+         False -> putStrLn "(less than two weeks old)"
 
 
    -- > readFavorites
