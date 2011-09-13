@@ -101,8 +101,7 @@ generateAndSaveToken key secret =
       -- TODO: this is not the best way or place to save the token
 
 
-twoWeeksAgo =
-   do
+twoWeeksAgo = do
       now <- getCurrentTime
 
       let twoWeeks = 14 * (60 * 60 * 24) :: NominalDiffTime
@@ -111,30 +110,29 @@ twoWeeksAgo =
 
 
 deleteOldFavorites =
+   let deleteOne fav = do
+         let ctime = strptime "%a %b %d %T %z %Y" $ fcreated_at fav
+     
+         twoWeeksAgo' <- twoWeeksAgo
+
+         ctime'' <- case ctime of
+                     Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
+                     _          -> error "that created time is not recognized"
+
+         -- TODO: flip
+         case (ctime'' <= twoWeeksAgo') of
+            True  -> putStrLn "(more than two weeks old)"
+            False -> do
+                        putStrLn $ "(less than two weeks old, fid_str: " ++ (fid_str fav) ++ ")"
+                        -- unFavorite (fid_str fav) token
+
+   in
    do
-      name <- getProgName
+      name  <- getProgName
       token <- readToken (name ++ ".token") 
+      favs  <- getFavorites [Page 1] token
 
-      favs <- getFavorites [Count 1] token
-      let fav = favs !! 0
-
-      let ctime = fcreated_at fav
-      let ctime' = strptime "%a %b %d %T %z %Y" ctime
-
-  
-      twoWeeksAgo' <- twoWeeksAgo
-
-      ctime'' <- case ctime' of
-                  Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
-                  _          -> error "that created time is not recognized"
-
-      -- TODO: flip
-      case (ctime'' <= twoWeeksAgo') of
-         True  -> putStrLn "(more than two weeks old)"
-         False -> do
-                     putStrLn $ "(less than two weeks old, fid_str: " ++ (fid_str fav) ++ ")"
-                     unFavorite (fid_str fav) token
-                     putStrLn "done."
+      sequence_ $ return $ mapM deleteOne favs
 
 
    -- > readFavorites
@@ -152,6 +150,7 @@ main =
 
       -- process the defaults with those actions
       opts <- foldl (>>=) (return defaultOpts) actions
+
 
       case (genMode opts, cleanMode opts) of
          (True, True)   -> error "gen and clean modes are mutually exclusive..."
