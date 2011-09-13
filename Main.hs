@@ -130,6 +130,13 @@ deleteOldFavorites =
    do
       name  <- getProgName
       token <- readToken (name ++ ".token") 
+
+      totals <- getTotals token
+      
+      putStrLn $ "number of favorites: " ++ (favorites totals)
+
+
+
       favs  <- getFavorites [Page 1] token
 
       sequence_ $ return $ mapM deleteOne favs
