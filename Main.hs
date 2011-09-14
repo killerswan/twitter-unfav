@@ -133,7 +133,7 @@ deleteOldFavorites =
 
       totals <- getTotals token
       
-      putStrLn $ "number of favorites: " ++ (favorites totals)
+      putStrLn $ "number of favorites: " ++ (shows (favorites (totals)) "")
 
 
 
