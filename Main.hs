@@ -2,7 +2,7 @@
 -- Module      : Main
 -- Copyright   : (c) 2011 Kevin Cantu
 --
--- License     : BSD-style
+-- License     : BSD3
 -- Maintainer  : Kevin Cantu <me@kevincantu.org>
 -- Stability   : experimental
 --

@@ -20,7 +20,7 @@ unfav
 
 
 GENERATE TOKEN:
-$  --generate --file "my.token" --key 99999999 --secret 99999999999
+$ ./dist/build/unfav/unfav --generate --file "my.token" --key 99999999 --secret 99999999999
 open https://api.twitter.com/oauth/authorize?oauth_token=99999999999
 99999999
 verifier: writing token file...

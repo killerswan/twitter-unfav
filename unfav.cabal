@@ -5,9 +5,9 @@ description:
    .
    This package provides an executable tool to delete old Twitter favorites.
    .
-   Usage: unfav --init
+   Usage: unfav --generate --file "my.token" --key 99999999 --secret 99999999999
    .
-      or: unfav [--keep DAYS]
+     and: unfav --file my.token
    .
 category:            Twitter
 stability:           experimental
@@ -16,14 +16,14 @@ license-file:        LICENSE
 author:              Kevin Cantu <me@kevincantu.org>
 maintainer:          Kevin Cantu <me@kevincantu.org>
 copyright:           (c) 2011 Kevin Cantu
-homepage:            https://github.com/killerswan
-bug-reports:         https://github.com/killerswan
+homepage:            https://github.com/killerswan/twitter-unfav
+bug-reports:         https://github.com/killerswan/twitter-unfav/issues
 build-type:          Simple
 cabal-version:       >=1.8
 
 source-repository head
    type:       git
-   location:   https://github.com/killerswan
+   location:   https://github.com/killerswan/twitter-unfav
 
 executable unfav
    main-is:          Main.hs
