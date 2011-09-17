@@ -28,12 +28,11 @@ source-repository head
 executable unfav
    main-is:          Main.hs
    hs-source-dirs:   .
-   build-depends:    base,
-                     text,
-                     haskell98,
+   build-depends:    askitter >= 0.0.4,
+                     base,
                      bytestring,
-                     time,
                      strptime,
-                     askitter >= 0.0.4
+                     text,
+                     time
 
 

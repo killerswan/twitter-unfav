@@ -11,16 +11,17 @@
 
 module Main (main) where
 
-import System
-import System.IO
-import IO
-import System.Console.GetOpt
-import Data.Time.Parse
-import Data.Time.LocalTime
+import Control.Monad (when)
+import Data.Time.Calendar
 import Data.Time.Clock
-import Data.Time.Calendar
-import Data.Time.Calendar
+import Data.Time.LocalTime
+import Data.Time.Parse
 import Data.Maybe
+import System.Environment
+import System.Exit
+import System.IO
+import System.IO.Error
+import System.Console.GetOpt
 import Web.Twitter         -- provided by askitter
 import Web.Twitter.OAuth   -- provided by askitter
 
@@ -116,15 +117,13 @@ deleteOldOnes token fav =
                   Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
                   _          -> error "that created time is not recognized"
 
-      if ctime' <= twoWeeksAgo'
-         then putStr "x" >> unFavorite (fid_str fav) token >> return ()
-         else return ()
-
+      when (ctime' <= twoWeeksAgo') $
+         putStr "x" >> unFavorite (fid_str fav) token >> return ()
 
 
 deleteOldFavorites page stopPage token =
    do
-      putStr $ " <- getting page " ++ (shows page "") ++ "...  "
+      putStr $ " <- getting page " ++ shows page "" ++ "...  "
 
       favs  <- getFavorites [Page page] token
 
@@ -132,13 +131,11 @@ deleteOldFavorites page stopPage token =
 
       putStrLn ""
       
-      if favs == []
-         then putStrLn "no more favorites received..."
-         else return ()
+      when (favs == []) $
+         putStrLn "no more favorites received..."
 
-      if page < stopPage && favs /= []
-         then deleteOldFavorites (page + 1) stopPage token
-         else return ()
+      when (page < stopPage && favs /= []) $
+         deleteOldFavorites (page + 1) stopPage token
 
 
 main :: IO ()
@@ -159,7 +156,7 @@ main =
                token  <- readToken (tokenFile opts)
                totals <- getTotals token
                let max = favorites totals `div` 20 + 1
-               putStrLn $ "number of favorites: " ++ (shows (favorites totals) "") ++ "..."
+               putStrLn $ "number of favorites: " ++ shows (favorites totals) "" ++ "..."
                deleteOldFavorites 1 max token
 
 
