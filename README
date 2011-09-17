@@ -2,6 +2,7 @@ unfav
 Kevin Cantu <me@kevincantu.org>
 September 2011
 
+
 BUILD:
 $ cabal-dev add-source /code/askitter
 $ cabal-dev install askitter
@@ -18,14 +19,14 @@ unfav
   -v         --version        display version
 
 
-TOKEN GENERATION:
+GENERATE TOKEN:
 $  --generate --file "my.token" --key 99999999 --secret 99999999999
 open https://api.twitter.com/oauth/authorize?oauth_token=99999999999
 99999999
 verifier: writing token file...
 
 
-DELETE FAVORITES OLDER THAN TWO WEEKS:
+DELETE OLDER FAVORITES:
 $ ./dist/build/unfav/unfav --file my.token
 number of favorites: 7566...
  <- getting page 1...  
@@ -36,7 +37,5 @@ number of favorites: 7566...
  <- getting page 6...  xxxxxxxxxxxxxxxxxxxx
  <- getting page 7...  xxxxxxxxxxxxxxxxxxxx
 ...
-
-
 
 

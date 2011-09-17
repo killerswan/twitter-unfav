@@ -11,24 +11,18 @@
 
 module Main (main) where
 
-import qualified Data.ByteString.Lazy as B
 import System
 import System.IO
 import IO
 import System.Console.GetOpt
-import qualified Data.Text.Lazy as T
-import qualified Data.Text.Lazy.Encoding as E
-import Data.Word
-
-import Web.Twitter         -- provided by askitter
-import Web.Twitter.OAuth   -- provided by askitter
 import Data.Time.Parse
 import Data.Time.LocalTime
 import Data.Time.Clock
 import Data.Time.Calendar
 import Data.Time.Calendar
-
 import Data.Maybe
+import Web.Twitter         -- provided by askitter
+import Web.Twitter.OAuth   -- provided by askitter
 
 
 version = "0.2"
@@ -57,15 +51,16 @@ defaultOpts = Options { genMode          = False
 options :: [ OptDescr (Options -> IO Options) ]
 options =
    [
+     -- REGULAR OR GEN MODE
+     Option "f" ["file"] 
+         (ReqArg (\arg opt -> return opt { tokenFile = arg }) "FILE")
+         "name of a file where the token is (or will be) saved"
+
      -- GEN MODE
-     Option "g" ["generate"] 
+   , Option "g" ["generate"] 
          (NoArg $ \opt -> return opt { genMode = True })
          $ "toggle generate mode, to save a Twitter API token\n" ++ 
          "(requires a FILE, KEY, and SECRET, too)"
-
-   , Option "f" ["file"] 
-         (ReqArg (\arg opt -> return opt { tokenFile = arg }) "FILE")
-         "name of a file where the token is (or will be) saved"
 
    , Option "k" ["key"] 
          (ReqArg (\arg opt -> return opt { consumerKey = arg }) "KEY")
