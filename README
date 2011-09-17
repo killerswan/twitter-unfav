@@ -2,10 +2,6 @@ unfav
 Kevin Cantu <me@kevincantu.org>
 September 2011
 
-STATUS:
-I'm currently writing the part which 
-deletes old favorites on Twitter...
-
 BUILD:
 $ cabal-dev add-source /code/askitter
 $ cabal-dev install askitter
@@ -14,11 +10,33 @@ $ cabal-dev build
 $ ./dist/build/unfav/unfav -h
 unfav
   -g         --generate       toggle generate mode, to save a Twitter API token
-                              (requires you specify a KEY and SECRET, too)
+                              (requires a FILE, KEY, and SECRET, too)
+  -f FILE    --file=FILE      name of a file where the token is (or will be) saved
   -k KEY     --key=KEY        a consumer key for this app
   -s SECRET  --secret=SECRET  a consumer secret for this app
-  -x         --clean          toggle clean up mode, to remove a saved token
   -h         --help           display help
   -v         --version        display version
+
+
+TOKEN GENERATION:
+$  --generate --file "my.token" --key 99999999 --secret 99999999999
+open https://api.twitter.com/oauth/authorize?oauth_token=99999999999
+99999999
+verifier: writing token file...
+
+
+DELETE FAVORITES OLDER THAN TWO WEEKS:
+$ ./dist/build/unfav/unfav --file my.token
+number of favorites: 7566...
+ <- getting page 1...  
+ <- getting page 2...  
+ <- getting page 3...  
+ <- getting page 4...  xx
+ <- getting page 5...  xxxxxxxxxxxxxxxxxxxx
+ <- getting page 6...  xxxxxxxxxxxxxxxxxxxx
+ <- getting page 7...  xxxxxxxxxxxxxxxxxxxx
+...
+
+
 
 

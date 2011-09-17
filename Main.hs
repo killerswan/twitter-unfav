@@ -9,7 +9,7 @@
 -- A program to clear out old Twitter favorites
 
 
---module Main (main) where
+module Main (main) where
 
 import qualified Data.ByteString.Lazy as B
 import System
@@ -31,12 +31,12 @@ import Data.Time.Calendar
 import Data.Maybe
 
 
-version = "0.1"
+version = "0.2"
 
 
 -- command line options
 data Options = Options { genMode          :: Bool
-                       , cleanMode        :: Bool
+                       , tokenFile        :: String
                        , consumerKey      :: String
                        , consumerSecret   :: String
                        }
@@ -45,9 +45,9 @@ data Options = Options { genMode          :: Bool
 -- command line defaults
 defaultOpts :: Options
 defaultOpts = Options { genMode          = False
-                      , cleanMode        = False
-                      , consumerKey      = ""
-                      , consumerSecret   = ""
+                      , tokenFile        = error "no file specified..."
+                      , consumerKey      = error "no consumer key specified..."
+                      , consumerSecret   = error "no consumer secret specified..."
                       }
 
 
@@ -55,53 +55,55 @@ defaultOpts = Options { genMode          = False
 -- this format is kinda bone headed:
 --   [Option short [long] (property setter-function hint) description]
 options :: [ OptDescr (Options -> IO Options) ]
-options = [
-            -- GEN MODE
-            Option "g" ["generate"] 
-                   (NoArg $ \opt -> return opt { genMode = True })
-                   $ "toggle generate mode, to save a Twitter API token\n" ++ 
-                     "(requires you specify a KEY and SECRET, too)"
+options =
+   [
+     -- GEN MODE
+     Option "g" ["generate"] 
+         (NoArg $ \opt -> return opt { genMode = True })
+         $ "toggle generate mode, to save a Twitter API token\n" ++ 
+         "(requires a FILE, KEY, and SECRET, too)"
 
-          , Option "k" ["key"] 
-                   (ReqArg (\arg opt -> return opt { consumerKey = arg }) "KEY")
-                   "a consumer key for this app"
+   , Option "f" ["file"] 
+         (ReqArg (\arg opt -> return opt { tokenFile = arg }) "FILE")
+         "name of a file where the token is (or will be) saved"
 
-          , Option "s" ["secret"] 
-                   (ReqArg (\arg opt -> return opt { consumerSecret = arg }) "SECRET")
-                   "a consumer secret for this app"
+   , Option "k" ["key"] 
+         (ReqArg (\arg opt -> return opt { consumerKey = arg }) "KEY")
+         "a consumer key for this app"
 
-            -- CLEAN MODE
-          , Option "x" ["clean"] 
-                   (NoArg $ \opt -> return opt { cleanMode = True })
-                   "toggle clean up mode, to remove a saved token"
+   , Option "s" ["secret"] 
+         (ReqArg (\arg opt -> return opt { consumerSecret = arg }) "SECRET")
+         "a consumer secret for this app"
 
-            -- HELP
-          , Option "h" ["help"] 
-                   (NoArg  $ \_ -> do
-                        prg <- getProgName
-                        hPutStrLn stderr $ usageInfo prg options
-                        exitWith ExitSuccess)
-                   "display help"
+      -- HELP
+   , Option "h" ["help"] 
+         (NoArg $ \_ ->
+            do
+               prg <- getProgName
+               hPutStrLn stderr $ usageInfo prg options
+               exitWith ExitSuccess)
+         "display help"
 
-            -- VERSION
-          , Option "v" ["version"] 
-                   (NoArg $ \_ -> do
-                        me <- getProgName
-                        hPutStrLn stderr $ me ++ " version " ++ version
-                        exitWith ExitSuccess)
-                   "display version"
-          ]
+      -- VERSION
+   , Option "v" ["version"] 
+         (NoArg $ \_ ->
+            do
+               me <- getProgName
+               hPutStrLn stderr $ me ++ " version " ++ version
+               exitWith ExitSuccess)
+         "display version"
+   ]
 
 
-generateAndSaveToken key secret = 
+generateAndSaveToken tokenFile key secret =
    do 
       token <- authenticate $ Consumer key secret
-      name  <- getProgName
-      writeToken token $ name ++ ".token"
-      -- TODO: this is not the best way or place to save the token
+      putStrLn "writing token file..."
+      writeToken token tokenFile
 
 
-twoWeeksAgo = do
+twoWeeksAgo =
+   do
       now <- getCurrentTime
 
       let twoWeeks = 14 * (60 * 60 * 24) :: NominalDiffTime
@@ -109,46 +111,43 @@ twoWeeksAgo = do
       return $ addUTCTime (-twoWeeks) now
 
 
-deleteOldFavorites =
-   let deleteOne fav = do
-         let ctime = strptime "%a %b %d %T %z %Y" $ fcreated_at fav
-     
-         twoWeeksAgo' <- twoWeeksAgo
-
-         ctime'' <- case ctime of
-                     Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
-                     _          -> error "that created time is not recognized"
-
-         -- TODO: flip
-         case (ctime'' <= twoWeeksAgo') of
-            True  -> putStrLn "(more than two weeks old)"
-            False -> do
-                        putStrLn $ "(less than two weeks old, fid_str: " ++ (fid_str fav) ++ ")"
-                        -- unFavorite (fid_str fav) token
-
-   in
+deleteOldOnes token fav =
    do
-      name  <- getProgName
-      token <- readToken (name ++ ".token") 
+      let ctime = strptime "%a %b %d %T %z %Y" $ fcreated_at fav
+  
+      twoWeeksAgo' <- twoWeeksAgo
 
-      totals <- getTotals token
+      ctime' <- case ctime of
+                  Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
+                  _          -> error "that created time is not recognized"
+
+      if ctime' <= twoWeeksAgo'
+         then putStr "x" >> unFavorite (fid_str fav) token >> return ()
+         else return ()
+
+
+
+deleteOldFavorites page stopPage token =
+   do
+      putStr $ " <- getting page " ++ (shows page "") ++ "...  "
+
+      favs  <- getFavorites [Page page] token
+
+      sequence_ $ return $ mapM (deleteOldOnes token) favs
+
+      putStrLn ""
       
-      putStrLn $ "number of favorites: " ++ (shows (favorites (totals)) "")
+      if favs == []
+         then putStrLn "no more favorites received..."
+         else return ()
 
+      if page < stopPage && favs /= []
+         then deleteOldFavorites (page + 1) stopPage token
+         else return ()
 
-
-      favs  <- getFavorites [Page 1] token
-
-      sequence_ $ return $ mapM deleteOne favs
-
-
-   -- > readFavorites
-   -- e.g. [Favorite {fcreated_at = "Mon Jul 25 08:51:41 +0000 2011", fid_str = "95415914727616512"},
-   --       Favorite {fcreated_at = "Mon Jul 25 08:38:07 +0000 2011", fid_str = "95412499763036160"}]
-   
 
 main :: IO ()
-main = 
+main =
    do 
       args <- getArgs
 
@@ -158,16 +157,14 @@ main =
       -- process the defaults with those actions
       opts <- foldl (>>=) (return defaultOpts) actions
 
-
-      case (genMode opts, cleanMode opts) of
-         (True, True)   -> error "gen and clean modes are mutually exclusive..."
-
-         (True, False)  -> if consumerKey opts == "" || consumerSecret opts == ""
-                           then error "to make a token, you need an OAuth consumer key and secret..."
-                           else generateAndSaveToken (consumerKey opts) (consumerSecret opts)
-
-         (False, True)  -> putStrLn "clean mode, yay!" -- TODO
-
-         _              -> deleteOldFavorites
+      if genMode opts
+         then generateAndSaveToken (tokenFile opts) (consumerKey opts) (consumerSecret opts)
+         else
+            do
+               token  <- readToken (tokenFile opts)
+               totals <- getTotals token
+               let max = favorites totals `div` 20 + 1
+               putStrLn $ "number of favorites: " ++ (shows (favorites totals) "") ++ "..."
+               deleteOldFavorites 1 max token
 
 
