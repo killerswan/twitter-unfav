@@ -4,11 +4,12 @@ September 2011
 
 
 BUILD:
-$ cabal-dev add-source /code/askitter
-$ cabal-dev install askitter
-$ cabal-dev configure
-$ cabal-dev build
-$ ./dist/build/unfav/unfav -h
+$ mkdir twitter-dev
+$ cd twitter-dev
+$ git clone https://killerswan@github.com/killerswan/askitter.git
+$ git clone https://killerswan@github.com/killerswan/twitter-unfav.git
+$ cabal-dev install ./askitter ./twitter-unfav
+$ ./cabal-dev/bin/unfav -h
 unfav
   -g         --generate       toggle generate mode, to save a Twitter API token
                               (requires a FILE, KEY, and SECRET, too)
@@ -20,14 +21,14 @@ unfav
 
 
 GENERATE TOKEN:
-$ ./dist/build/unfav/unfav --generate --file "my.token" --key 99999999 --secret 99999999999
+$ ./cabal-dev/bin/unfav --generate --file "my.token" --key 99999999 --secret 99999999999
 open https://api.twitter.com/oauth/authorize?oauth_token=99999999999
 99999999
 verifier: writing token file...
 
 
 DELETE OLDER FAVORITES:
-$ ./dist/build/unfav/unfav --file my.token
+$ ./cabal-dev/bin/unfav --file my.token
 number of favorites: 7566...
  <- getting page 1...  
  <- getting page 2...  
