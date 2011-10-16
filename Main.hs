@@ -98,26 +98,26 @@ generateAndSaveToken tokenFile key secret =
       writeToken token tokenFile
 
 
-twoWeeksAgo =
+oneWeekAgo =
    do
       now <- getCurrentTime
 
-      let twoWeeks = 14 * (60 * 60 * 24) :: NominalDiffTime
+      let oneWeek = 7 * (60 * 60 * 24) :: NominalDiffTime
 
-      return $ addUTCTime (-twoWeeks) now
+      return $ addUTCTime (-oneWeek) now
 
 
 deleteOldOnes token fav =
    do
       let ctime = strptime "%a %b %d %T %z %Y" $ fcreated_at fav
   
-      twoWeeksAgo' <- twoWeeksAgo
+      oneWeekAgo' <- oneWeekAgo
 
       ctime' <- case ctime of
                   Just (t,_) -> getCurrentTimeZone >>= \z -> return (localTimeToUTC z t)
                   _          -> error "that created time is not recognized"
 
-      when (ctime' <= twoWeeksAgo') $
+      when (ctime' <= oneWeekAgo') $
          putStr "x" >> unFavorite (fid_str fav) token >> return ()
 
 
@@ -144,7 +144,7 @@ main =
       args <- getArgs
 
       -- call getOpt, ignoring errors
-      let (actions, nonOptions, _) = getOpt Permute options args
+      let (actions, _, _) = getOpt Permute options args
 
       -- process the defaults with those actions
       opts <- foldl (>>=) (return defaultOpts) actions
@@ -155,8 +155,8 @@ main =
             do
                token  <- readToken (tokenFile opts)
                totals <- getTotals token
-               let max = favorites totals `div` 20 + 1
+               let max' = favorites totals `div` 20 + 1
                putStrLn $ "number of favorites: " ++ shows (favorites totals) "" ++ "..."
-               deleteOldFavorites 1 max token
+               deleteOldFavorites 1 max' token
 
 
