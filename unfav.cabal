@@ -29,7 +29,7 @@ executable unfav
    main-is:          Main.hs
    hs-source-dirs:   .
    ghc-options:      -Wall -O2
-   build-depends:    askitter >= 0.0.4,
+   build-depends:    askitter >= 0.0.1,
                      base,
                      bytestring,
                      strptime,
@@ -40,7 +40,7 @@ executable unfav-threadscope
    main-is:          Main.hs
    hs-source-dirs:   .
    ghc-options:      -Wall -O2 -threaded -eventlog -auto-all -rtsopts
-   build-depends:    askitter >= 0.0.4,
+   build-depends:    askitter >= 0.0.1,
                      base,
                      bytestring,
                      strptime,
