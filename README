@@ -20,6 +20,12 @@ unfav
   -v         --version        display version
 
 
+CREATE AN APP:
+Go to Twitter's dev site and create an application
+which will request read/write permissions.
+Note its consumer key and consumer secret...
+
+
 GENERATE TOKEN:
 $ ./cabal-dev/bin/unfav --generate --file "my.token" --key 99999999 --secret 99999999999
 open https://api.twitter.com/oauth/authorize?oauth_token=99999999999
