@@ -32,6 +32,7 @@ executable unfav
    build-depends:    askitter >= 0.0.1,
                      base,
                      bytestring,
+                     hoauth,
                      strptime,
                      text,
                      time
@@ -43,6 +44,7 @@ executable unfav-threadscope
    build-depends:    askitter >= 0.0.1,
                      base,
                      bytestring,
+                     hoauth,
                      strptime,
                      text,
                      time

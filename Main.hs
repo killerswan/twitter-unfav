@@ -12,26 +12,27 @@
 module Main (main) where
 
 import Control.Monad (when)
-import Data.Time.Calendar
-import Data.Time.Clock
-import Data.Time.LocalTime
-import Data.Time.Parse
-import Data.Maybe
-import System.Environment
-import System.Exit
-import System.IO
-import System.IO.Error
-import System.Console.GetOpt
-import Web.Twitter         -- provided by askitter
-import Web.Twitter.OAuth   -- provided by askitter
+import Data.Time.Clock (addUTCTime, getCurrentTime, NominalDiffTime(), UTCTime())
+import Data.Time.LocalTime (getCurrentTimeZone, localTimeToUTC)
+import Data.Time.Parse (strptime)
+import Network.OAuth.Consumer (Token())
+import System.Environment (getArgs, getProgName)
+import System.Exit (exitWith, ExitCode(ExitSuccess))
+import System.IO (stderr, hPutStrLn)
+import System.Console.GetOpt (getOpt, usageInfo, OptDescr(Option), ArgDescr(ReqArg, NoArg), ArgOrder(Permute))
+
+-- provided by askitter
+import Web.Twitter (Favorite(), favorites, getFavorites, fcreated_at, getTotals, fid_str, unFavorite, Option(Page))
+import Web.Twitter.OAuth (authenticate, Consumer(Consumer), readToken, writeToken)
 
 
+version :: String
 version = "0.2"
 
 
 -- command line options
 data Options = Options { genMode          :: Bool
-                       , tokenFile        :: String
+                       , tokenFileName    :: String
                        , consumerKey      :: String
                        , consumerSecret   :: String
                        }
@@ -40,7 +41,7 @@ data Options = Options { genMode          :: Bool
 -- command line defaults
 defaultOpts :: Options
 defaultOpts = Options { genMode          = False
-                      , tokenFile        = error "no file specified..."
+                      , tokenFileName    = error "no file specified..."
                       , consumerKey      = error "no consumer key specified..."
                       , consumerSecret   = error "no consumer secret specified..."
                       }
@@ -53,8 +54,8 @@ options :: [ OptDescr (Options -> IO Options) ]
 options =
    [
      -- REGULAR OR GEN MODE
-     Option "f" ["file"] 
-         (ReqArg (\arg opt -> return opt { tokenFile = arg }) "FILE")
+     Option "t" ["tokenFile"] 
+         (ReqArg (\arg opt -> return opt { tokenFileName = arg }) "FILE")
          "name of a file where the token is (or will be) saved"
 
      -- GEN MODE
@@ -90,14 +91,16 @@ options =
          "display version"
    ]
 
-
-generateAndSaveToken tokenFile key secret =
+ 
+generateAndSaveToken :: FilePath -> String -> String -> IO ()
+generateAndSaveToken filename key secret =
    do 
       token <- authenticate $ Consumer key secret
       putStrLn "writing token file..."
-      writeToken token tokenFile
+      writeToken token filename
 
 
+oneWeekAgo :: IO UTCTime
 oneWeekAgo =
    do
       now <- getCurrentTime
@@ -107,6 +110,7 @@ oneWeekAgo =
       return $ addUTCTime (-oneWeek) now
 
 
+deleteOldOnes :: Token -> Favorite -> IO ()
 deleteOldOnes token fav =
    do
       let ctime = strptime "%a %b %d %T %z %Y" $ fcreated_at fav
@@ -121,6 +125,7 @@ deleteOldOnes token fav =
          putStr "x" >> unFavorite (fid_str fav) token >> return ()
 
 
+deleteOldFavorites :: Integer -> Integer -> Token -> IO ()
 deleteOldFavorites page stopPage token =
    do
       putStr $ " <- getting page " ++ shows page "" ++ "...  "
@@ -150,10 +155,10 @@ main =
       opts <- foldl (>>=) (return defaultOpts) actions
 
       if genMode opts
-         then generateAndSaveToken (tokenFile opts) (consumerKey opts) (consumerSecret opts)
+         then generateAndSaveToken (tokenFileName opts) (consumerKey opts) (consumerSecret opts)
          else
             do
-               token  <- readToken (tokenFile opts)
+               token  <- readToken (tokenFileName opts)
                totals <- getTotals token
                let max' = favorites totals `div` 20 + 1
                putStrLn $ "number of favorites: " ++ shows (favorites totals) "" ++ "..."
